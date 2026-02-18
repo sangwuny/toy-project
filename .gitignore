@@ -3,6 +3,7 @@
 **/.vscode/
 
 Infra/terraform/.terraform/
+Infra/terraform/terraform.tfvars
 Infra/terraform/*.tfstate
 Infra/terraform/*.tfstate.*
 Infra/terraform/.terraform.lock.hcl
