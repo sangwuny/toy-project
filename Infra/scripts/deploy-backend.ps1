@@ -28,7 +28,27 @@ if (-not $service) { throw "Failed to get ecs_backend_service_name output." }
 
 Set-Location $backendDir
 
-aws ecr get-login-password --region $region | docker login --username AWS --password-stdin ($repoUrl -replace '/.*$','')
+$registry = ($repoUrl -replace '/.*$','')
+$ecrPassword = aws ecr get-login-password --region $region
+if ($LASTEXITCODE -ne 0 -or -not $ecrPassword) {
+  throw "Failed to retrieve ECR login password."
+}
+
+# Keep password out of CLI args; use stdin via cmd to avoid PowerShell 5.1 pipe quirks.
+$tempPasswordFile = [System.IO.Path]::GetTempFileName()
+try {
+  Set-Content -Path $tempPasswordFile -Value $ecrPassword -NoNewline -Encoding ascii
+  cmd.exe /c "type `"$tempPasswordFile`" | docker login --username AWS --password-stdin $registry" | Out-Null
+  if ($LASTEXITCODE -ne 0) {
+    throw "Docker login to ECR failed."
+  }
+}
+finally {
+  if (Test-Path $tempPasswordFile) {
+    Remove-Item -Path $tempPasswordFile -Force
+  }
+}
+
 docker build -t "${repoUrl}:latest" .
 docker push "${repoUrl}:latest"
 
