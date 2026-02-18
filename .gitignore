@@ -1,0 +1,8 @@
+**/node_modules/
+**/.idea/
+**/.vscode/
+
+Infra/terraform/.terraform/
+Infra/terraform/*.tfstate
+Infra/terraform/*.tfstate.*
+Infra/terraform/.terraform.lock.hcl
